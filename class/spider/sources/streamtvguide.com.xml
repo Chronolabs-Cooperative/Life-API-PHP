@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spider>
+	<stages>root|finality</stages>
+	<root>
+		<uri>http://www.streamtvguide.com/</uri>
+		<action>get</action>
+		<stages>one|two|three</stages>
+		<one>
+			<method>dom</method>
+			<function>find</function>
+			<clause>li[class=CatLevel1 SubMenue]</clause>
+			<carriage>nodes</carriage>
+			<action>store</action>
+			<node>innertext</node></one>
+		<two>
+			<method>dom</method>
+			<function>find</function>
+			<clause>li[class=CatLevel1]</clause>
+			<carriage>nodes</carriage>
+			<action>store</action>
+			<node>innertext</node></two>
+		<three>
+			<method>variable</method>
+			<function>implode</function>
+			<clause>nodes</clause>
+			<carriage>sources</carriage>
+			<action>store</action></three>
+		<variable></variable>
+		<type>html</type></root>
+	<finality>
+		<action>provide</action>
+		<stages>one</stages>
+		<variable>sources</variable>
+		<one>
+			<method>dom</method>
+			<function>find</function>
+			<clause>a</clause>
+			<carriage>%result%</carriage>
+			<action>store</action>
+			<node>href</node></one>
+		<type>uri</type></finality></spider>

@@ -1,0 +1,3 @@
+RewriteEngine On
+RewriteRule ^v2/(radio|audio|sound)/(.*?)/(.*?)/(json|xml|serial).api 	index.php?source=$1&mode=$2&basis=$3&output=$4  	[L,NC,QSA]
+RewriteRule ^v2/(radio|audio|sound)/(.*?)/(json|xml|serial).api 	index.php?source=$1&mode=$2&basis=&output=$3  		[L,NC,QSA]
