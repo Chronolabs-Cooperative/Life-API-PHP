@@ -3,7 +3,7 @@
 define('PLSURL', 'http://yp.shoutcast.com/sbin/tunein-station.pls?id=%s');
 define('DIRURL', 'http://dir.xiph.org/listen/%s/listen.m3u');
 
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'agents.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'agents.php';
 
 /**
  * Class lifeRadio
@@ -28,7 +28,7 @@ class lifeRadio
     	if (empty($genres))
     	{
     		$base = array();
-    		foreach(file(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'genres-radio.diz') as $genre)
+    		foreach(file(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'include' . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'genres-radio.diz') as $genre)
     		{
     			$genre = trim($genre);
     			if (substr($genre, strlen($genre)-1, 1) == '=') {
@@ -232,42 +232,39 @@ class lifeRadio
     	
     	switch($mode){
     		case 'genre':
-    			if (!$stations = lifeCache::read('life_radio_genre_'.sha1($basis))) {
-	    			if (!$plstations = lifeCache::read('life_pls_radio_genre_'.sha1($basis))) {
+    			if (!$stations = APICache::read('life_radio_genre_'.sha1($basis))) {
+	    			if (!$plstations = APICache::read('life_pls_radio_genre_'.sha1($basis))) {
 	   					$plstations = self::cleanStations(json_decode(self::getExternal("http://www.shoutcast.com/Home/BrowseByGenre", array('genrename' => self::formatGenre($basis, true))), true), constant("PLSURL"), 'parsePlaylist');
-	   					lifeCache::write('life_pls_radio_genre_'.sha1($basis), $plstations, 60 * mt_rand(5, 11));
+	   					APICache::write('life_pls_radio_genre_'.sha1($basis), $plstations, 60 * mt_rand(5, 11));
 	    			}
-	    			if (!$dirtations = lifeCache::read('life_xpih_radio_genre_'.sha1($basis))) {
+	    			if (!$dirtations = APICache::read('life_xpih_radio_genre_'.sha1($basis))) {
 	    				$dirtations = self::cleanStations(self::getDIRXPIHORG("http://dir.xiph.org/by_genre/" . str_replace(" ", "", self::formatGenre($basis, true))), constant("DIRURL"), "parseM3UPlaylist");
-	    				lifeCache::write('life_xpih_radio_genre_'.sha1($basis), $dirtations, 60 * mt_rand(5, 11));
+	    				APICache::write('life_xpih_radio_genre_'.sha1($basis), $dirtations, 60 * mt_rand(5, 11));
 	    			}
-	    			lifeCache::write('life_radio_genre_'.sha1($basis), $stations = array_merge($dirtations, $plstations), mt_rand(4, 19) * mt_rand(31, 90));
+	    			APICache::write('life_radio_genre_'.sha1($basis), $stations = array_merge($dirtations, $plstations), mt_rand(4, 19) * mt_rand(31, 90));
     			}
    				break;
    			case 'random':
-   				if (!$stations = lifeCache::read('life_radio_random_'.md5($_SERVER["REMOTE_ADDR"]))) {
-   					$stations = self::cleanStation(json_decode(self::getExternal("http://www.shoutcast.com/Home/GetRandomStation", array('query' => '')), true), constant("PLSURL"), 'parsePlaylist');
-   					lifeCache::write('life_radio_random_'.md5($_SERVER["REMOTE_ADDR"]), $stations, 60 * mt_rand(0.11119, 0.78889));
-   				}
+   				$stations = self::cleanStation(json_decode(self::getExternal("http://www.shoutcast.com/Home/GetRandomStation", array('query' => '')), true), constant("PLSURL"), 'parsePlaylist');
    				break;
    			case 'search':
-   				if (!$stations = lifeCache::read('life_radio_search_'.sha1($basis))) {
-   					if (!$plstations = lifeCache::read('life_pls_radio_search_'.sha1($basis))) {
+   				if (!$stations = APICache::read('life_radio_search_'.sha1($basis))) {
+   					if (!$plstations = APICache::read('life_pls_radio_search_'.sha1($basis))) {
    						$plstations = self::cleanStations(json_decode(self::getExternal("http://www.shoutcast.com/Search/UpdateSearch", array('query' => $basis)), true), constant("PLSURL"), 'parsePlaylist');
-   						lifeCache::write('life_pls_radio_search_'.sha1($basis), $plstations, 60 * mt_rand(5, 11));
+   						APICache::write('life_pls_radio_search_'.sha1($basis), $plstations, 60 * mt_rand(5, 11));
    					}
-   					if (!$dirtations = lifeCache::read('life_xpih_radio_search_'.sha1($basis))) {
+   					if (!$dirtations = APICache::read('life_xpih_radio_search_'.sha1($basis))) {
    						$dirtations = self::cleanStations(self::getDIRXPIHORG("http://dir.xiph.org/?search=" . $basis), constant("DIRURL"), "parseM3UPlaylist");
-   						lifeCache::write('life_xpih_radio_search_'.sha1($basis), $dirtations, 60 * mt_rand(5, 11));
+   						APICache::write('life_xpih_radio_search_'.sha1($basis), $dirtations, 60 * mt_rand(5, 11));
    					}
-   					lifeCache::write('life_radio_search_'.sha1($basis), $stations = array_merge($dirtations, $plstations), mt_rand(4, 19) * mt_rand(31, 90));
+   					APICache::write('life_radio_search_'.sha1($basis), $stations = array_merge($dirtations, $plstations), mt_rand(4, 19) * mt_rand(31, 90));
    				}
    				break;
    			default:
     		case 'top500':
-    			if (!$stations = lifeCache::read('life_radio_top500')) {
+    			if (!$stations = APICache::read('life_radio_top500')) {
     				$stations = self::cleanStations(json_decode(self::getExternal("http://www.shoutcast.com/Home/Top", array('query' => '')), true), constant("PLSURL"), 'parsePlaylist');
-    				lifeCache::write('life_radio_top500', $stations, 60 * mt_rand(5, mt_rand(7,13)));
+    				APICache::write('life_radio_top500', $stations, 60 * mt_rand(5, mt_rand(7,13)));
     			}
     			break;
     	}
@@ -285,7 +282,7 @@ class lifeRadio
     	$ret = array();
     	foreach($stations as $id => $station)
     	{
-    		$ret[sha1($station['ID'].$_SERVER["HTTP_HOST"].$station['NAME'].$downloaduri)] = self::cleanStation($station, $downloaduri, $func);
+    		$ret[sha1($station['ID'].parse_url(API_URL, PHP_URL_HOST).$station['NAME'].$downloaduri)] = self::cleanStation($station, $downloaduri, $func);
     	}
     	return $ret;
     }
@@ -303,7 +300,7 @@ class lifeRadio
     		switch ($key)
     		{
     			case "ID":
-    				$ret['key'] = sha1($value.$_SERVER["HTTP_HOST"].$station['NAME'].$downloaduri);
+    				$ret['key'] = sha1($value.parse_url(API_URL, PHP_URL_HOST).$station['NAME'].$downloaduri);
     				$id = $value;
     				break;
     			default:
@@ -312,10 +309,11 @@ class lifeRadio
     			
     		}
     	}
-    	if (!$keys = lifeCache::read('life_radio_identity_keys'))
+    	if (!$keys = APICache::read('life_radio_identity_keys'))
     		$keys = array();
     	$keys[$ret['key']] = array('id' => $id, 'uri' => $downloaduri, 'func' => $func);
-    	lifeCache::write('life_radio_identity_keys', $keys, 3600 * 48 * 7 * 4 * 12);
+    	APICache::write('life_radio_identity_keys', $keys, 3600 * 48 * 7 * 4 * 12);
+    	print_r($keys, true);
     	return $ret;
     }    
     
@@ -328,7 +326,7 @@ class lifeRadio
      */
     static function getStreamsFromStationID($stationkey = '')
     {
-    	if (!$keys = lifeCache::read('life_radio_identity_keys'))
+    	if (!$keys = APICache::read('life_radio_identity_keys'))
     		return array();
     	if (!isset($keys[$stationkey]))
     		return array();
@@ -342,7 +340,7 @@ class lifeRadio
      * @return Ambigous <multitype:unknown , mixed, NULL, boolean, unknown>
      */
     private function parsePlaylist($playlistUrl) {
-    	if (!$streamUrls = lifeCache::read('life_radio_streams_'.sha1($playlistUrl))) {
+    	if (!$streamUrls = APICache::read('life_radio_streams_'.sha1($playlistUrl))) {
 	    	$response = self::getExternal($playlistUrl, array());
 	    	$playlist = parse_ini_string($response);
 	    	$streamUrls = array();
@@ -351,7 +349,7 @@ class lifeRadio
 	    		if (substr($key, 0, 4) == 'File')
 	    			$streamUrls[] = $value;
 	    	}
-	    	lifeCache::write('life_radio_streams_'.sha1($playlistUrl), $streamUrls, 60 * mt_rand(30, 90) * mt_rand(45, 135));
+	    	APICache::write('life_radio_streams_'.sha1($playlistUrl), $streamUrls, 60 * mt_rand(30, 90) * mt_rand(45, 135));
     	}
     	return $streamUrls;
     }
@@ -362,12 +360,12 @@ class lifeRadio
      * @return Ambigous <multitype:unknown , mixed, NULL, boolean, unknown>
      */
     private function parseM3UPlaylist($playlistUrl) {
-    	if (!$streamUrls = lifeCache::read('life_radio_streams_'.sha1($playlistUrl))) {
+    	if (!$streamUrls = APICache::read('life_radio_streams_'.sha1($playlistUrl))) {
     		$response = self::getExternal($playlistUrl, array());
     		$streamUrls = explode("\n",str_replace(array("\R\n", "\n\R", "\n\n") ,"\n", $response));
     		foreach($streamUrls as $id => $value)
     			$streamUrls[$id] = trim($value);
-    		lifeCache::write('life_radio_streams_'.sha1($playlistUrl), $streamUrls, 60 * mt_rand(30, 90) * mt_rand(45, 135));
+    		APICache::write('life_radio_streams_'.sha1($playlistUrl), $streamUrls, 60 * mt_rand(30, 90) * mt_rand(45, 135));
     	}
     	return $streamUrls;
     }

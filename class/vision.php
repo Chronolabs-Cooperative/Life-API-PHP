@@ -20,7 +20,7 @@ class lifeVision
     	if (empty($genres))
     	{
     		$base = array();
-    		foreach(file(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'genres-vision.diz') as $genre)
+    		foreach(file(dirname(__DIR__)  . DIRECTORY_SEPARATOR . 'include' . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . 'genres-vision.diz') as $genre)
     		{
     			$genre = trim($genre);
     			if (substr($genre, strlen($genre)-1, 1) == '=') {
@@ -74,28 +74,28 @@ class lifeVision
     	
     	switch($mode){
     		case 'genre':
-    			if (!$channels = lifeCache::read('life_vision_genre_'.sha1($basis))) {
+    			if (!$channels = APICache::read('life_vision_genre_'.sha1($basis))) {
    					$channels = self::cleanChannels(json_decode(self::getExternal("http://www.shoutcast.com/Home/BrowseByGenre", array('genrename' => self::formatGenre($basis, true)), true)));
-   					lifeCache::write('life_vision_genre_'.sha1($basis), $channels, 60 * mt_rand(5, 11));
+   					APICache::write('life_vision_genre_'.sha1($basis), $channels, 60 * mt_rand(5, 11));
     			}
    				break;
    			case 'random':
-   				if (!$channels = lifeCache::read('life_vision_random_'.md5($_SERVER["REMOTE_ADDR"]))) {
+   				if (!$channels = APICache::read('life_vision_random_'.md5(whitelistGetIP(true)))) {
    					$channels = self::cleanChannel(json_decode(self::getExternal("http://www.shoutcast.com/Home/GetRandomChannel", array('query' => '')), true));
-   					lifeCache::write('life_vision_random_'.md5($_SERVER["REMOTE_ADDR"]), $channels, 60 * mt_rand(0.11119, 0.78889));
+   					APICache::write('life_vision_random_'.md5(whitelistGetIP(true)), $channels, 60 * mt_rand(0.11119, 0.78889));
    				}
    				break;
    			case 'search':
-   				if (!$channels = lifeCache::read('life_vision_search_'.sha1($basis))) {
+   				if (!$channels = APICache::read('life_vision_search_'.sha1($basis))) {
    					$channels = self::cleanChannels(json_decode(self::getExternal("http://www.shoutcast.com/Search/UpdateSearch", array('query' => $basis)), true));
-   					lifeCache::write('life_vision_search_'.sha1($basis), $channels, mt_rand(24, 89) * mt_rand(120, 720));
+   					APICache::write('life_vision_search_'.sha1($basis), $channels, mt_rand(24, 89) * mt_rand(120, 720));
    				}
    				break;
    			default:
     		case 'top500':
-    			if (!$channels = lifeCache::read('life_vision_top500')) {
+    			if (!$channels = APICache::read('life_vision_top500')) {
     				$channels = self::cleanChannels(json_decode(self::getExternal("http://www.shoutcast.com/Home/Top", array('query' => '')), true));
-    				lifeCache::write('life_vision_top500', $channels, 60 * mt_rand(5, mt_rand(7,13)));
+    				APICache::write('life_vision_top500', $channels, 60 * mt_rand(5, mt_rand(7,13)));
     			}
     			break;
     	}
@@ -112,7 +112,7 @@ class lifeVision
      */
     static function getHTMLFromChannelKey($channelkey = '')
     {
-    	if (!$keys = lifeCache::read('life_vision_identity_keys'))
+    	if (!$keys = APICache::read('life_vision_identity_keys'))
     		return array();
     	if (!isset($keys[$channelkey]))
     		return array();

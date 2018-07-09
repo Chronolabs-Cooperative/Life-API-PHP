@@ -12,10 +12,10 @@ class lifeAgents
      */
     static function saveUserAgent()
     {
-        if (!$agents = lifeCache::read('life_user_agents_'.sha1($_SERVER["HTTP_HOST"])))
+        if (!$agents = APICache::read('life_user_agents_'.sha1($_SERVER["HTTP_HOST"])))
         	$agents = array();
         $agents[sha1($_SERVER['HTTP_USER_AGENT'])] = $_SERVER['HTTP_USER_AGENT'];
-   		lifeCache::write('life_user_agents_'.sha1($_SERVER["HTTP_HOST"]), $agents, 3600 * 24 * 7 * 4 * 72);
+   		APICache::write('life_user_agents_'.sha1($_SERVER["HTTP_HOST"]), $agents, 3600 * 24 * 7 * 4 * 72);
    		return $_SERVER['HTTP_USER_AGENT'];
     }
     
@@ -26,7 +26,7 @@ class lifeAgents
      */
     static function anyUserAgent()
     {
-    	if (!$agents = lifeCache::read('life_user_agents_'.sha1($_SERVER["HTTP_HOST"])))
+    	if (!$agents = APICache::read('life_user_agents_'.sha1($_SERVER["HTTP_HOST"])))
     		return $_SERVER['HTTP_USER_AGENT'];
     	$keys = array_keys($agents);
     	mt_srand(mt_rand(-microtime(true), microtime(true)));

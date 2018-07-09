@@ -20,11 +20,9 @@
  */
 
 	
-	define('MAXIMUM_QUERIES', 35);
-	ini_set('memory_limit', '128M');
-	include dirname(__FILE__).'/functions.php';
-	error_reporting(E_ERROR);
-
+	
+	include __DIR__ . DIRECTORY_SEPARATOR . 'apiconfig.php';
+	
 	$help=false;
 	if ((!isset($_GET['mode']) || empty($_GET['mode'])) && (!isset($_GET['basis']) || empty($_GET['basis']) && (!isset($_GET['source']) || empty($_GET['source'])))) {
 		$help=true;
@@ -43,10 +41,16 @@
 		include dirname(__FILE__).'/help.php';
 		exit;
 	}
+	
 	if (function_exists('http_response_code'))
 		http_response_code(200);
 	$data = getAPIData($source, $mode, $basis);
+
 	switch ($output) {
+		case 'raw':
+		    header('Content-type: application/x-httpd-php');
+		    echo ('<?php'."\n\n".'return ' . var_export($data, true) . ";\n\n?>");
+		    break;
 		default:
 		case 'json':
 			header('Content-type: application/json');

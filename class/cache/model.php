@@ -1,6 +1,6 @@
 <?php
 /**
- * Chronolabs Digital Signature Generation & API Services
+ * Chronolabs Cooperative Entitisms Repository Services REST API
  *
  * You may not change or alter any portion of this comment or credits
  * of supporting developers from this source code or any supporting source code
@@ -9,17 +9,21 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * @copyright       Chronolabs Cooperative http://labs.coop
- * @license         General Software Licence (https://web.labs.coop/public/legal/general-software-license/10,3.html)
- * @package         life
- * @since           1.0.1
- * @author          Simon Roberts <wishcraft@users.sourceforge.net>
- * @subpackage		cache
- * @description		Digital Signature Generation & API Services
- * @link			https://life.labs.coop Digital Signature Generation & API Services
+ * @copyright       Chronolabs Cooperative http://syd.au.snails.email
+ * @license         ACADEMIC APL 2 (https://sourceforge.net/u/chronolabscoop/wiki/Academic%20Public%20License%2C%20version%202.0/)
+ * @license         GNU GPL 3 (http://www.gnu.org/licenses/gpl.html)
+ * @package         entities-api
+ * @since           2.2.1
+ * @author          Dr. Simon Antony Roberts <simon@snails.email>
+ * @version         2.2.8
+ * @description		A REST API for the storage and management of entities + persons + beingness collaterated!
+ * @link            http://internetfounder.wordpress.com
+ * @link            https://github.com/Chronolabs-Cooperative/Emails-API-PHP
+ * @link            https://sourceforge.net/p/chronolabs-cooperative
+ * @link            https://facebook.com/ChronolabsCoop
+ * @link            https://twitter.com/ChronolabsCoop
  */
-
-defined('_PATH_ROOT') or die('Restricted access');
+defined('API_ROOT_PATH') || exit('Restricted access');
 
 /**
  * Database Storage engine for cache
@@ -36,23 +40,21 @@ defined('_PATH_ROOT') or die('Restricted access');
  * Redistributions of files must retain the above copyright notice.
  *
  * @filesource
- * @copyright Copyright 2005-2008, Cake Software Foundation, Inc.
- * @link http://www.cakefoundation.org/projects/info/cakephp CakePHP(tm) Project
- * @package cake
+ * @copyright  Copyright 2005-2008, Cake Software Foundation, Inc.
+ * @link       http://www.cakefoundation.org/projects/info/cakephp CakePHP(tm) Project
+ * @package    cake
  * @subpackage cake.cake.libs.cache
- * @since CakePHP(tm) v 1.2.0.4933
- * @version $Revision: 8066 $
- * @modifiedby $LastChangedBy: beckmi $
- * @lastmodified $Date: 2011-11-06 01:09:33 -0400 (Sun, 06 Nov 2011) $
- * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * @since      CakePHP(tm) v 1.2.0.4933
+ * @license    http://www.opensource.org/licenses/mit-license.php The MIT License
  */
+
 /**
  * Database Storage engine for cache
  *
- * @package cake
+ * @package    cake
  * @subpackage cake.cake.libs.cache
  */
-class lifeCacheModel extends lifeCacheEngine
+class APICacheModel extends APICacheEngine
 {
     /**
      * settings
@@ -62,7 +64,7 @@ class lifeCacheModel extends lifeCacheEngine
      * @var array
      * @access public
      */
-    var $settings = array();
+    public $settings = array();
 
     /**
      * Model instance.
@@ -70,7 +72,7 @@ class lifeCacheModel extends lifeCacheEngine
      * @var object
      * @access private
      */
-    var $model = null;
+    public $model;
 
     /**
      * Model instance.
@@ -78,7 +80,7 @@ class lifeCacheModel extends lifeCacheEngine
      * @var object
      * @access private
      */
-    var $fields = array();
+    public $fields = array();
 
     /**
      * Initialize the Cache Engine
@@ -86,19 +88,20 @@ class lifeCacheModel extends lifeCacheEngine
      * Called automatically by the cache frontend
      * To reinitialize the settings call Cache::engine('EngineName', [optional] settings = array());
      *
-     * @param array $setting array of setting for the engine
+     * @param  array $settings array of setting for the engine
      * @return boolean True if the engine has been successfully initialized, false if not
-     * @access public
+     * @access   public
      */
-    function init($settings)
+    public function init($settings = array())
     {
-        $lifeDB =& lifeDatabaseFactory::getDatabaseConnection();
+        $apiDB = APIDatabaseFactory::getDatabaseConnection();
 
         parent::init($settings);
-        $defaults = array('fields' => array('data' , 'expires'));
+        $defaults       = array('fields' => array('data', 'expires'));
         $this->settings = array_merge($defaults, $this->settings);
-        $this->fields = $this->settings['fields'];
-        $this->model = new lifeCacheModelHandler($lifeDB);
+        $this->fields   = $this->settings['fields'];
+        $this->model    = new APICacheModelHandler($apiDB);
+
         return true;
     }
 
@@ -107,62 +110,64 @@ class lifeCacheModel extends lifeCacheEngine
      *
      * @access public
      */
-    function gc()
+    public function gc()
     {
-        return $this->model->deleteAll(new Criteria($this->fields[1], time, '<= '));
+        return $this->model->deleteAll(new Criteria($this->fields[1], time(), '<= '));
     }
 
     /**
      * Write data for key into cache
      *
-     * @param string $key Identifier for the data
-     * @param mixed $data Data to be cached
-     * @param integer $duration How long to cache the data, in seconds
-     * @return boolean True if the data was succesfully cached, false on failure
+     * @param  string  $key      Identifier for the data
+     * @param  mixed   $value     Data to be cached
+     * @param  integer $duration How long to cache the data, in seconds
+     * @return boolean True if the data was successfully cached, false on failure
      * @access public
      */
-    function write($key, $data, $duration)
+    public function write($key, $value, $duration = null)
     {
         // if (isset($this->settings['serialize'])) {
-        $data = serialize($data);
+        $value = serialize($value);
         // }
-        if (! $data) {
+        if (!$value) {
             return false;
         }
         $cache_obj = $this->model->create();
-        $cache_obj->setVar($this->model::KEYNAME, $key);
-        $cache_obj->setVar($this->fields[0], $data);
+        $cache_obj->setVar($this->model->keyname, $key);
+        $cache_obj->setVar($this->fields[0], $value);
         $cache_obj->setVar($this->fields[1], time() + $duration);
+
         return $this->model->insert($cache_obj);
     }
 
     /**
      * Read a key from the cache
      *
-     * @param string $key Identifier for the data
-     * @return mixed The cached data, or false if the data doesn't exist, has expired, or if there was an error fetching it
+     * @param  string $key Identifier for the data
+     * @return mixed  The cached data, or false if the data doesn't exist, has expired, or if there was an error fetching it
      * @access public
      */
-    function read($key)
+    public function read($key)
     {
-        $criteria = new CriteriaCompo(new Criteria($this->model::KEYNAME, $key));
-        $criteria->add(new Criteria($this->fields[1], time(), ">"));
+        $criteria = new CriteriaCompo(new Criteria($this->model->keyname, $key));
+        $criteria->add(new Criteria($this->fields[1], time(), '>'));
         $criteria->setLimit(1);
         $data = $this->model->getAll($criteria);
         if (!$data) {
             return null;
         }
+
         return unserialize($data[0]);
     }
 
     /**
      * Delete a key from the cache
      *
-     * @param string $key Identifier for the data
-     * @return boolean True if the value was succesfully deleted, false if it didn't exist or couldn't be removed
+     * @param  string $key Identifier for the data
+     * @return boolean True if the value was successfully deleted, false if it didn't exist or couldn't be removed
      * @access public
      */
-    function delete($key)
+    public function delete($key)
     {
         return $this->model->delete($key);
     }
@@ -170,32 +175,29 @@ class lifeCacheModel extends lifeCacheEngine
     /**
      * Delete all keys from the cache
      *
-     * @return boolean True if the cache was succesfully cleared, false otherwise
+     * @return boolean True if the cache was successfully cleared, false otherwise
      * @access public
      */
-    function clear()
+    public function clear($check = null)
     {
         return $this->model->deleteAll();
     }
 }
 
 /**
- * lifeCacheModelObject
+ * APICacheModelObject
  *
  * @package
- * @author John
- * @copyright Copyright (c) 2009
- * @version $Id: model.php 8066 2011-11-06 05:09:33Z beckmi $
- * @access public
+ * @author              John
+ * @copyright       (c) 2000-2016 API Project (www.api.org)
+ * @access              public
  */
-class lifeCacheModelObject extends lifeObject
+class APICacheModelObject extends APIObject
 {
-    function lifeCacheModelObject()
-    {
-        $this->__construct();
-    }
-
-    function __construct()
+    /**
+     * Constructor
+     */
+    public function __construct()
     {
         parent::__construct();
         $this->initVar('key', XOBJ_DTYPE_TXTBOX);
@@ -205,19 +207,16 @@ class lifeCacheModelObject extends lifeObject
 }
 
 /**
- * lifeCacheModelHandler
+ * APICacheModelHandler
  *
  * @package
- * @author John
- * @copyright Copyright (c) 2009
- * @version $Id: model.php 8066 2011-11-06 05:09:33Z beckmi $
- * @access public
+ * @author              John
+ * @copyright       (c) 2000-2016 API Project (www.api.org)
+ * @access              public
  */
-class lifeCacheModelHandler extends lifePersistableObjectHandler
+class APICacheModelHandler extends APIPersistableObjectHandler
 {
-    const TABLE = 'cache_model';
-    const CLASSNAME = 'lifeCacheModelObject';
-    const KEYNAME = 'key';
+    const TABLE     = 'cache_model';
+    const CLASSNAME = 'APICacheModelObject';
+    const KEYNAME   = 'key';
 }
-
-?>

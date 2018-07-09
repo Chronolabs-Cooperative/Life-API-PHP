@@ -1,3 +1,12 @@
+php_value memory_limit 16M
+php_value upload_max_filesize 1M
+php_value post_max_size 1M
+php_value error_reporting 0
+php_value display_errors 0
+
 RewriteEngine On
-RewriteRule ^v2/(radio|audio|sound)/(.*?)/(.*?)/(json|xml|serial).api 	index.php?source=$1&mode=$2&basis=$3&output=$4  	[L,NC,QSA]
-RewriteRule ^v2/(radio|audio|sound)/(.*?)/(json|xml|serial).api 	index.php?source=$1&mode=$2&basis=&output=$3  		[L,NC,QSA]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^v2/(radio|audio|sound)/(.*?)/(.*?)/(json|xml|serial|raw).api index.php?source=$1&mode=$2&basis=$3&output=$4 [L,NC,QSA]
+RewriteRule ^v2/(radio|audio|sound)/(.*?)/(json|xml|serial|raw).api index.php?source=$1&mode=$2&basis=&output=$3 [L,NC,QSA]
+
